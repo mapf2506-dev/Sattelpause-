@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sattelpause">
+<meta name="theme-color" content="#1F3A2E">
+<title>Sattelpause – Stopps für Radfahrer</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3EEE2;
+    --ink:#1F3A2E;
+    --ink-soft:#4B5F55;
+    --line:#D9D1BE;
+    --kuchen:#A6572D;
+    --kuchen-soft:#F1DFCF;
+    --eis:#C2678B;
+    --eis-soft:#F6DEE6;
+    --wasser:#3E7C93;
+    --wasser-soft:#DCE9EC;
+    --werkstatt:#5C5470;
+    --werkstatt-soft:#E4E1EA;
+    --wc:#4E7A6B;
+    --wc-soft:#DCEAE5;
+    --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:'Work Sans',sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    overflow:hidden;
+  }
+  #app{
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    height:100dvh;
+  }
+  header{
+    padding:16px 18px 12px;
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+    z-index:500;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:24px;
+    margin:0;
+    letter-spacing:-0.01em;
+    color:var(--ink);
+  }
+  h1 span{color:var(--kuchen);}
+  .subtitle{
+    margin:2px 0 12px;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .filters{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding-bottom:2px;
+  }
+  .filters::-webkit-scrollbar{display:none;}
+  .toggle-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:10px;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .toggle-row input{accent-color:var(--ink);width:16px;height:16px;}
+  .nearest-panel{
+    position:absolute;
+    left:16px;
+    right:16px;
+    bottom:22px;
+    z-index:500;
+    background:var(--card);
+    border-radius:14px;
+    border:1px solid var(--line);
+    box-shadow:0 4px 14px rgba(31,58,46,0.2);
+    padding:10px 12px;
+    display:none;
+    max-height:150px;
+    overflow-y:auto;
+  }
+  .nearest-panel.show{display:block;}
+  .nearest-panel .np-title{font-size:11px;font-weight:700;color:var(--ink-soft);letter-spacing:.02em;margin:0 0 6px;}
+  .nearest-panel .np-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:6px 2px;
+    border-top:1px solid var(--line);
+    font-size:13px;
+    cursor:pointer;
+  }
+  .nearest-panel .np-item:first-of-type{border-top:none;}
+  .nearest-panel .np-dist{color:var(--ink-soft);font-size:12px;white-space:nowrap;margin-left:8px;}
+  .chip{
+    flex:none;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:8px 14px;
+    border-radius:20px;
+    border:1.5px solid var(--line);
+    background:var(--card);
+    font-family:'Work Sans',sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+    white-space:nowrap;
+    transition:transform .12s ease;
+  }
+  .chip:active{transform:scale(0.96);}
+  .chip .dot{width:9px;height:9px;border-radius:50%;}
+  .chip[data-cat="alle"] .dot{background:var(--ink);}
+  .chip[data-cat="kuchen"] .dot{background:var(--kuchen);}
+  .chip[data-cat="eis"] .dot{background:var(--eis);}
+  .chip[data-cat="wasser"] .dot{background:var(--wasser);}
+  .chip[data-cat="werkstatt"] .dot{background:var(--werkstatt);}
+  .chip[data-cat="wc"] .dot{background:var(--wc);}
+  .chip.active[data-cat="alle"]{background:var(--ink);border-color:var(--ink);color:#fff;}
+  .chip.active[data-cat="alle"] .dot{background:#fff;}
+  .chip.active[data-cat="kuchen"]{background:var(--kuchen);border-color:var(--kuchen);color:#fff;}
+  .chip.active[data-cat="kuchen"] .dot{background:#fff;}
+  .chip.active[data-cat="eis"]{background:var(--eis);border-color:var(--eis);color:#fff;}
+  .chip.active[data-cat="eis"] .dot{background:#fff;}
+  .chip.active[data-cat="wasser"]{background:var(--wasser);border-color:var(--wasser);color:#fff;}
+  .chip.active[data-cat="wasser"] .dot{background:#fff;}
+  .chip.active[data-cat="werkstatt"]{background:var(--werkstatt);border-color:var(--werkstatt);color:#fff;}
+  .chip.active[data-cat="werkstatt"] .dot{background:#fff;}
+  .chip.active[data-cat="wc"]{background:var(--wc);border-color:var(--wc);color:#fff;}
+  .chip.active[data-cat="wc"] .dot{background:#fff;}
+
+  #map{position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;}
+
+  .locate-btn{
+    position:absolute;
+    right:16px;
+    bottom:22px;
+    z-index:500;
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    background:var(--ink);
+    color:#fff;
+    border:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 3px 10px rgba(31,58,46,0.35);
+    font-size:20px;
+    cursor:pointer;
+  }
+  .locate-btn:active{transform:scale(0.94);}
+
+  .fab-stack{
+    position:absolute;
+    right:16px;
+    bottom:22px;
+    z-index:500;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .fab{
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    background:var(--ink);
+    color:#fff;
+    border:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 3px 10px rgba(31,58,46,0.35);
+    font-size:18px;
+    cursor:pointer;
+  }
+  .fab:active{transform:scale(0.94);}
+  .fab.secondary{background:var(--kuchen);}
+
+  .tour-panel .np-item{cursor:default;}
+  .tour-panel a.route{
+    display:block;
+    margin-top:8px;
+    text-align:center;
+    background:var(--ink);
+    color:#fff;
+    text-decoration:none;
+    font-size:13px;
+    font-weight:600;
+    padding:9px 0;
+    border-radius:9px;
+  }
+
+  .add-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(31,58,46,0.45);
+    z-index:1000;
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .add-overlay.show{display:flex;}
+  .add-card{
+    background:var(--card);
+    width:100%;
+    max-width:420px;
+    border-radius:18px 18px 0 0;
+    padding:20px 18px 26px;
+  }
+  .add-card h3{
+    font-family:'Fraunces',serif;
+    font-size:18px;
+    font-weight:600;
+    margin:0 0 12px;
+  }
+  .add-card input, .add-card select, .add-card textarea{
+    width:100%;
+    font-family:'Work Sans',sans-serif;
+    font-size:14px;
+    padding:9px 11px;
+    border-radius:9px;
+    border:1px solid var(--line);
+    margin-bottom:10px;
+    color:var(--ink);
+  }
+  .add-card textarea{resize:none;}
+  .add-actions{display:flex;gap:10px;margin-top:4px;}
+  .add-actions button{
+    flex:1;
+    padding:10px 0;
+    border-radius:9px;
+    border:none;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  #addCancel{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line) !important;}
+  #addSave{background:var(--ink);color:#fff;}
+  .add-status{font-size:12.5px;color:var(--ink-soft);margin-top:8px;min-height:16px;}
+
+  .leaflet-control-layers{
+    border-radius:12px !important;
+    border:1.5px solid var(--line) !important;
+    box-shadow:0 3px 10px rgba(31,58,46,0.18) !important;
+    font-family:'Work Sans',sans-serif;
+  }
+  .leaflet-control-layers-toggle{width:38px !important;height:38px !important;}
+  .leaflet-control-layers label{font-size:13px;margin-bottom:2px;}
+
+  .pin{
+    width:34px;height:34px;border-radius:50% 50% 50% 0;
+    transform:rotate(-45deg);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,0.35);
+    border:2px solid #fff;
+  }
+  .pin span{transform:rotate(45deg);font-size:16px;}
+  .pin.kuchen{background:var(--kuchen);}
+  .pin.eis{background:var(--eis);}
+  .pin.wasser{background:var(--wasser);}
+  .pin.werkstatt{background:var(--werkstatt);}
+  .pin.wc{background:var(--wc);}
+
+  .leaflet-popup-content-wrapper{
+    border-radius:14px;
+    padding:0;
+    overflow:hidden;
+    box-shadow:0 8px 24px rgba(31,58,46,0.22);
+  }
+  .leaflet-popup-content{margin:0;width:250px !important;}
+  .leaflet-popup-tip{background:#fff;}
+  .popup{padding:14px 16px 16px;}
+  .popup .cat-tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.02em;
+    padding:3px 9px;
+    border-radius:20px;
+    margin-bottom:8px;
+  }
+  .popup.kuchen .cat-tag{background:var(--kuchen-soft);color:var(--kuchen);}
+  .popup.eis .cat-tag{background:var(--eis-soft);color:var(--eis);}
+  .popup.wasser .cat-tag{background:var(--wasser-soft);color:var(--wasser);}
+  .popup.werkstatt .cat-tag{background:var(--werkstatt-soft);color:var(--werkstatt);}
+  .popup.wc .cat-tag{background:var(--wc-soft);color:var(--wc);}
+  .popup h3{
+    font-family:'Fraunces',serif;
+    font-size:17px;
+    font-weight:600;
+    margin:0 0 4px;
+    line-height:1.2;
+  }
+  .popup .addr{font-size:12.5px;color:var(--ink-soft);margin:0 0 8px;}
+  .popup .note{font-size:13px;line-height:1.4;margin:0 0 10px;color:var(--ink);}
+  .popup .meta{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;}
+  .popup .meta .rating{color:#B8860B;font-weight:600;}
+  .popup a.route{
+    display:block;
+    text-align:center;
+    background:var(--ink);
+    color:#fff;
+    text-decoration:none;
+    font-size:13px;
+    font-weight:600;
+    padding:9px 0;
+    border-radius:9px;
+  }
+  .popup .rate-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-top:1px solid var(--line);
+    margin-top:10px;
+    padding-top:10px;
+  }
+  .popup .rate-label{font-size:12px;color:var(--ink-soft);}
+  .popup .stars{display:flex;gap:2px;}
+  .popup .stars span{
+    font-size:18px;
+    line-height:1;
+    cursor:pointer;
+    color:#D9D1BE;
+  }
+  .popup .stars span.filled{color:#B8860B;}
+  .popup .note-field{
+    width:100%;
+    margin-top:8px;
+    font-family:'Work Sans',sans-serif;
+    font-size:12.5px;
+    padding:7px 9px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    resize:none;
+    color:var(--ink);
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Sattel<span>pause</span></h1>
+    <p class="subtitle">Kaffee, Eis &amp; Wasser entlang eurer Touren um Stuttgart, Ludwigsburg, Rems-Murr &amp; Heilbronn</p>
+    <div class="filters">
+      <div class="chip active" data-cat="alle"><span class="dot"></span>Alle</div>
+      <div class="chip" data-cat="kuchen"><span class="dot"></span>Kaffee &amp; Kuchen</div>
+      <div class="chip" data-cat="eis"><span class="dot"></span>Eis</div>
+      <div class="chip" data-cat="wasser"><span class="dot"></span>Wasser</div>
+      <div class="chip" data-cat="werkstatt"><span class="dot"></span>Werkstatt &amp; Service</div>
+      <div class="chip" data-cat="wc"><span class="dot"></span>WC</div>
+    </div>
+    <label class="toggle-row"><input type="checkbox" id="openNowToggle"> Nur aktuell geöffnet</label>
+    <label class="toggle-row"><input type="checkbox" id="shadeToggle"> 🌳 Nur schattige Stopps</label>
+  </header>
+  <div style="position:relative;flex:1;">
+    <div id="map"></div>
+    <div class="nearest-panel" id="nearestPanel">
+      <p class="np-title">NÄCHSTE STOPPS</p>
+      <div id="nearestList"></div>
+    </div>
+    <div class="nearest-panel tour-panel" id="tourPanel">
+      <p class="np-title">TOURVORSCHLAG</p>
+      <div id="tourList"></div>
+    </div>
+    <div class="fab-stack">
+      <button class="fab" id="addBtn" title="Neuen Ort hinzufügen">+</button>
+      <button class="fab secondary" id="tourBtn" title="Tourvorschlag">🧭</button>
+      <button class="fab" id="locateBtn" title="Meinen Standort zeigen">➤</button>
+    </div>
+  </div>
+</div>
+
+<div class="add-overlay" id="addOverlay">
+  <div class="add-card">
+    <h3>Neuen Ort hinzufügen</h3>
+    <input id="addName" placeholder="Name des Ortes">
+    <select id="addCat">
+      <option value="kuchen">Kaffee & Kuchen</option>
+      <option value="eis">Eis</option>
+      <option value="wasser">Wasser</option>
+      <option value="werkstatt">Werkstatt & Service</option>
+    </select>
+    <input id="addAddress" placeholder="Adresse (Straße, Ort)">
+    <textarea id="addNote" rows="2" placeholder="Notiz (optional)"></textarea>
+    <div class="add-actions">
+      <button id="addCancel" type="button">Abbrechen</button>
+      <button id="addSave" type="button">Speichern</button>
+    </div>
+    <p class="add-status" id="addStatus"></p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const spots = [
+  {cat:"kuchen", icon:"🚴", name:"alf cycling Café & Bar", addr:"Villastraße 14, Stuttgart-Ost", lat:48.79414, lng:9.20295, rating:4.9, hours:"Do–So 10–18 Uhr", note:"Dediziertes Rad-Café mit charmanter Innenhof-Oase hinterm Haus, sehr gute Bewertungen, beliebter Treffpunkt für Radler.", shade:true},
+  {cat:"kuchen", icon:"🚴", name:"Fietsen Radcafé", addr:"Silberburgstraße 84, Stuttgart-West", lat:48.77939, lng:9.16238, rating:4.6, hours:"Di–So ab 9 Uhr", note:"Echtes Radlercafé mit Rennrädern an der Wand, gutes Filterkaffee-Angebot und Snacks. Perfekter Treffpunkt vor oder nach der Tour."},
+  {cat:"kuchen", icon:"🍺", name:"Katzenbacher Hof", addr:"Katzenbacher Hof 1, Stuttgart", lat:48.74489, lng:9.06162, rating:4.5, hours:"Mo–So, So ab 10 Uhr", note:"Biergarten mitten im Grünen, gut mit dem Rad erreichbar, großes Gelände mit Spielplatz für Familien.", shade:true},
+  {cat:"kuchen", icon:"🍰", name:"Flora & Fauna", addr:"Am Schwanenplatz 10, Stuttgart-Ost", lat:48.79683, lng:9.20517, rating:4.4, hours:"täglich 11–23 Uhr", note:"Aussichtslage nach einem Anstieg, Käsekuchen wird empfohlen, gute Rast nach längerer Etappe."},
+  {cat:"kuchen", icon:"🌊", name:"DOCK SNYDER – Max-Eyth-See", addr:"Mühlhäuser Str. 271, Stuttgart", lat:48.83493, lng:9.21448, rating:4.4, hours:"Mo–Sa, So geschlossen", note:"Direkt am See gelegen, leicht von der Innenstadt aus mit dem Rad erreichbar, auch vegetarische Optionen.", shade:true},
+  {cat:"kuchen", icon:"🍺", name:"Neckarbiergarten", addr:"Überkinger Str. 13, Stuttgart", lat:48.80672, lng:9.21424, rating:4.2, hours:"Mo–Fr ab 15 Uhr, Sa/So ab 12 Uhr", note:"Entspannt direkt am Neckar gelegen, kleiner Spielbereich vorhanden.", shade:true},
+  {cat:"kuchen", icon:"🐄", name:"Steffis Hofcafé und Hofladen", addr:"Stiftsgrundhof 71, Backnang", lat:48.91118, lng:9.41580, rating:4.6, hours:"siehe vor Ort", note:"Hofcafé mit Blick auf Kühe, dazu ein 24h-Eisautomat direkt am Hofladen – praktisch auch außerhalb der Öffnungszeiten.", shade:true},
+  {cat:"kuchen", icon:"🍰", name:"s'Cafele", addr:"Waldblick 4, Auenwald", lat:48.92737, lng:9.53696, rating:4.9, hours:"Fr–So 14–18 Uhr", note:"Kleines, gemütliches Café mit wechselndem, sehr beliebtem Kuchenangebot. Nur am Wochenende geöffnet, nur Barzahlung."},
+  {cat:"kuchen", icon:"☕", name:"Lille Bønne", addr:"Marktstraße 37, Backnang", lat:48.94638, lng:9.43126, rating:5.0, hours:"Di–Sa 9–18 Uhr", note:"Skandinavisch angehauchtes Café, sehr guter Kaffee, gute Option für einen ruhigen Zwischenstopp."},
+  {cat:"kuchen", icon:"🍰", name:"Café Mohrenköpfle", addr:"Heilbronner Str. 140, Ludwigsburg", lat:48.90469, lng:9.17700, rating:4.6, hours:"Mi–Sa 7–17:30 Uhr, So 9–17 Uhr", note:"Bekannte Konditorei mit großer Kuchen- und Tortenauswahl, auch handgemachte Pralinen. Beliebter Stopp am Stadtrand von Ludwigsburg."},
+  {cat:"kuchen", icon:"🍰", name:"Cafe Tante Emma", addr:"Willy-Brandt-Platz 3, Backnang", lat:48.94885, lng:9.42947, rating:4.4, hours:"Mo, Mi–So, Di geschlossen", note:"Gemütliches Café-Kneipen-Flair, schwäbische Küche, Apfelstrudel wird oft gelobt."},
+  {cat:"kuchen", icon:"🍰", name:"Hofcafé Haag", addr:"Zillhardtshof 12, Waiblingen-Hohenacker", lat:48.87132, lng:9.33026, rating:4.6, hours:"Fr–So 13:30–19:30 Uhr", note:"Idyllisches Hofcafé mit Terrasse, ausdrücklich als beliebtes Ziel für Radfahrer beschrieben, große Kuchenauswahl."},
+  {cat:"kuchen", icon:"☕", name:"Café Rose", addr:"Rosenstraße 2, Schorndorf", lat:48.80705, lng:9.52721, rating:4.8, hours:"Mo–Sa 9:30–20:30 Uhr, So 11–20 Uhr", note:"Direkt am Bahnhof, große Matcha- und Kuchenauswahl, sehr freundlicher Service."},
+  {cat:"kuchen", icon:"☕", name:"Café CONNECT", addr:"Gmünder Str. 70, Schorndorf", lat:48.80514, lng:9.54003, rating:4.9, hours:"Do–Fr, Sa vormittags, Mo–Mi geschlossen", note:"Wird oft als bester Kaffee im Rems-Murr-Kreis genannt, Reservierung empfohlen."},
+  {cat:"kuchen", icon:"☕", name:"BohNina Café & Bar", addr:"Marktstraße 21, Winnenden", lat:48.87691, lng:9.39723, rating:4.7, hours:"Di–Sa 9–20 Uhr, Mo geschlossen", note:"Gemütliches Café mitten in Winnenden, gute Frühstücks- und Brunch-Optionen."},
+  {cat:"kuchen", icon:"🍰", name:"Café s'Schümli", addr:"Sülmerstraße 9, Heilbronn", lat:49.14260, lng:9.22034, rating:4.7, hours:"Mo–Sa 8–18 Uhr, So 9–15 Uhr", note:"Sehr beliebtes Frühstückscafé, wird oft als bester Kaffee der Stadt genannt, an Sonntagen meist gut besucht."},
+  {cat:"eis", icon:"🍦", name:"Fräulein Schmid Hofladen", addr:"Heinzenberger Weg 50, Sachsenheim", lat:48.97703, lng:9.06683, rating:4.7, hours:"24h am Automaten", note:"Drei Automaten direkt am Hofladen, zwei davon mit Eis bestückt – über 20 Sorten, Erdbeeren und Melonen vom eigenen Feld."},
+  {cat:"eis", icon:"🍦", name:"Santos Ice & Coffee Bar", addr:"Kirchstraße 18, Ludwigsburg", lat:48.89796, lng:9.19049, rating:4.8, hours:"täglich, So ab 11 Uhr", note:"Spaghetti-Eis wird als eines der besten in der Umgebung beschrieben, freundlicher Service."},
+  {cat:"eis", icon:"🍦", name:"Gelateria Flora", addr:"Seestraße 7, Ludwigsburg", lat:48.89524, lng:9.19047, rating:4.7, hours:"täglich 12–19 Uhr", note:"Selbstgemachtes Eis, schöner Außenbereich mit besonderem Ambiente."},
+  {cat:"eis", icon:"🍦", name:"Eissalon Olivier", addr:"Myliusstraße 3, Ludwigsburg", lat:48.89389, lng:9.18751, rating:4.6, hours:"Mo,Di,Do–So, Mi geschlossen", note:"Große Auswahl inklusive veganer Sorten, auch außergewöhnliche Geschmacksrichtungen im Angebot."},
+  {cat:"eis", icon:"🍦", name:"Eiscafé Dolce Vita", addr:"Seestraße 6, Ludwigsburg", lat:48.89546, lng:9.18999, rating:4.0, hours:"täglich", note:"Zentral in Ludwigsburg gelegen, gut kombinierbar mit einem Abstecher zum Residenzschloss."},
+  {cat:"eis", icon:"🍨", name:"Primafila Eismanufaktur", addr:"Ob. Neckarstraße 32, Heilbronn", lat:49.14209, lng:9.21638, rating:4.7, hours:"täglich ab 12 Uhr", note:"Direkt am Neckar, oft als beliebtester Eisladen Heilbronns genannt, mit Warteschlange an warmen Tagen."},
+  {cat:"eis", icon:"🍨", name:"Secrets Gelato Naturale", addr:"Kirchbrunnenstraße 29, Heilbronn", lat:49.14160, lng:9.21822, rating:4.9, hours:"Di–So ab 12 Uhr, Mo geschlossen", note:"Alles hausgemacht und natürlich, Pistazie wird besonders empfohlen."},
+  {cat:"eis", icon:"🍨", name:"GelatOne", addr:"Sülmerstraße 35, Heilbronn", lat:49.14402, lng:9.22069, rating:4.8, hours:"Di–So 10–21 Uhr, Mo geschlossen", note:"Gemütliche Sitzgelegenheiten, beliebter Treffpunkt, auch Kaffee-Eis-Kombinationen im Angebot."},
+  {cat:"eis", icon:"🍦", name:"Pizzeria Eiscafe Piccolino", addr:"Kurze Str. 38, Waiblingen", lat:48.83130, lng:9.31578, rating:4.6, hours:"täglich 12–19 Uhr", note:"Familiär geführte Eisdiele, sehr freundlicher Service, gute Kombination aus Eis und Kaffee."},
+  {cat:"eis", icon:"🍨", name:"Alfreds Eismanufaktur", addr:"Marktplatz 12, Schorndorf", lat:48.80556, lng:9.52767, rating:4.7, hours:"täglich 12–20 Uhr", note:"Handgemachtes Eis direkt am Marktplatz, schattige Sitzplätze, große Kuchenauswahl zusätzlich zum Eis."},
+  {cat:"eis", icon:"🍦", name:"Gelateria da Franco", addr:"Schillerstraße 78, Waiblingen-Bittenfeld", lat:48.88978, lng:9.31449, rating:4.6, hours:"Mo 13–21 Uhr, Di–So 11–21 Uhr", note:"Beliebte Eisdiele mit gemütlichem Außenbereich, auch Pinsa und Salate im Angebot."},
+  {cat:"wasser", icon:"💧", name:"Trinkwasserbrunnen Cannstatt-Mitte", addr:"Cannstatt-Mitte, Stuttgart", lat:48.80507, lng:9.21474, rating:4.0, hours:"24h", note:"Sauberer Trinkbrunnen direkt vorm Rathaus Cannstatt."},
+  {cat:"wasser", icon:"💧", name:"Trinkwasserbrunnen Schillerplatz", addr:"Schillerplatz 6, Stuttgart", lat:48.77726, lng:9.18012, rating:3.4, hours:"24h", note:"Zentral in der Innenstadt, teils wechselnde Zuverlässigkeit – vor Ort checken."},
+  {cat:"wasser", icon:"💧", name:"Trinkbrunnen Pariser Platz", addr:"Hauptbahnhof, Stuttgart", lat:48.78834, lng:9.18263, rating:3.0, hours:"24h", note:"Am Hauptbahnhof gelegen, praktisch als Startpunkt für Touren Richtung Stuttgart-Ost."},
+  {cat:"wasser", icon:"💧", name:"Marktplatz Trinkbrunnen", addr:"Marktplatz 4, Stuttgart", lat:48.77534, lng:9.17772, rating:3.7, hours:"24h", note:"Mitten auf dem Marktplatz, gut mit einem Stopp in der Innenstadt kombinierbar."},
+  {cat:"wasser", icon:"💧", name:"Trinkbrunnen Rathausplatz", addr:"Rathausplatz, Ludwigsburg", lat:48.89584, lng:9.19203, rating:3.0, hours:"24h, meist März–Oktober in Betrieb", note:"Zentral am Rathaus, laut Bewertungen nicht immer zuverlässig – im Winter meist außer Betrieb."},
+  {cat:"wasser", icon:"💧", name:"Trinkbrunnen Marktplatz", addr:"Marktplatz 8, Ludwigsburg", lat:48.89787, lng:9.19130, rating:5.0, hours:"24h", note:"Wird ausdrücklich als radlerfreundlich gelobt – gut zum Auffüllen der Trinkflasche mitten in der Stadt."},
+  {cat:"wasser", icon:"💧", name:"Trinkbrunnen Bärenwiese", addr:"Bärenwiese, Ludwigsburg", lat:48.89572, lng:9.19505, rating:5.0, hours:"24h", note:"Knopfdruck-Brunnen am Parkrand, angenehm kühles Wasser, auch gut für Hunde."},
+  {cat:"wasser", icon:"💧", name:"Trinkbrunnen Uferwiesen", addr:"Uferstraße, Ludwigsburg", lat:48.91091, lng:9.21615, rating:5.0, hours:"24h", note:"Liegt an den Uferwiesen, gute Ergänzung für Touren Richtung Norden entlang des Neckars."},
+  {cat:"wasser", icon:"💧", name:"Trinkbrunnen Arsenalplatz", addr:"Arsenalstraße 2, Ludwigsburg", lat:48.89540, lng:9.18895, rating:null, hours:"24h", note:"Zentral gelegener Brunnen am Arsenalplatz."},
+  {cat:"werkstatt", icon:"🔧", name:"fixundfertig Fahrradwerkstatt", addr:"Nagelstraße 2, Stuttgart", lat:48.77072, lng:9.18646, rating:5.0, hours:"Mo,Di,Do,Fr, Mi/Sa/So geschlossen", note:"Kleine, sehr gut bewertete Werkstatt, Termin vorab empfohlen, schnelle und faire Reparaturen."},
+  {cat:"werkstatt", icon:"🔧", name:"Fahrradhaus Winter", addr:"Oststraße 47, Ludwigsburg", lat:48.89204, lng:9.20670, rating:4.7, hours:"Di–Fr, Sa vormittags, Mo geschlossen", note:"Fahrradladen mit Werkstatt, auch E-Bike-Service und Verleih."},
+  {cat:"werkstatt", icon:"🔧", name:"Bikesnboards", addr:"Schwieberdinger Str. 36, Ludwigsburg", lat:48.89097, lng:9.17967, rating:4.9, hours:"Mo,Di,Do,Fr,Sa, Mi geschlossen", note:"Fahrradladen mit Werkstattservice, kompetente Beratung."},
+  {cat:"werkstatt", icon:"🔧", name:"Radstation Ludwigsburg", addr:"Pflugfelder Str. 19, Ludwigsburg", lat:48.89215, lng:9.18405, rating:3.7, hours:"täglich 6/7–8/9 Uhr", note:"Soziales Unternehmen, günstiger Fahrrad-Service direkt am Bahnhof, Termin nötig, nur Barzahlung."},
+  {cat:"werkstatt", icon:"🔧", name:"Bicycle Service Station Cannstatt", addr:"Bahnhofstraße 14–18, Stuttgart", lat:48.80261, lng:9.21702, rating:4.4, hours:"Mo–Fr 9–13 & 14–18 Uhr", note:"Schneller, freundlicher Reparaturservice direkt am Bahnhof Cannstatt, nur Barzahlung."},
+  {cat:"werkstatt", icon:"🛠️", name:"Bike Repair Self Service Station", addr:"Wettemarkt, Ludwigsburg", lat:48.89254, lng:9.22899, rating:5.0, hours:"24h, kostenlos", note:"Öffentliche Selbsthilfe-Station mit Werkzeug und Pumpe zum freien Gebrauch."},
+  {cat:"werkstatt", icon:"🛠️", name:"RadSERVICE-Punkt Reuteallee", addr:"Reuteallee, Ludwigsburg", lat:48.90835, lng:9.17983, rating:5.0, hours:"24h, kostenlos", note:"Öffentliche Reparatursäule mit Pumpe und Werkzeug, frei zugänglich."},
+  {cat:"werkstatt", icon:"🛠️", name:"RadSERVICE-Punkt Groenerstraße", addr:"Groenerstraße, Ludwigsburg", lat:48.89301, lng:9.17273, rating:null, hours:"24h, kostenlos", note:"Öffentliche Reparatursäule mit Pumpe und Werkzeug, frei zugänglich."},
+  {cat:"wc", icon:"🚻", name:"Toilette Kernerviertel", addr:"Kernerviertel, Stuttgart", lat:48.78589, lng:9.18730, rating:3.6, hours:"24h, kostenlos", note:"Kostenlose, selbstreinigende Toilette, laut Bewertungen ungewöhnlich sauber für eine öffentliche Anlage."},
+  {cat:"wc", icon:"🚻", name:"Öffentliche Toilette Marienplatz", addr:"Marienplatz, Stuttgart", lat:48.76371, lng:9.16810, rating:3.9, hours:"24h, kostenlos", note:"Selbstreinigende, kostenlose Anlage, gut gelegen für Touren Richtung Süden."},
+  {cat:"wc", icon:"🚻", name:"Öffentliche Toilette Monrepos", addr:"Monrepos 18, Ludwigsburg", lat:48.91883, lng:9.17097, rating:4.0, hours:"24h, kostenlos", note:"Kostenlose Toilette direkt am Schlosspark Monrepos, praktisch für Touren am See."},
+  {cat:"wc", icon:"🚻", name:"Öffentliche Toilette Marktgasse", addr:"Marktgasse 1, Waiblingen", lat:48.83316, lng:9.31569, rating:4.0, hours:"täglich 6:30–1 Uhr", note:"Zentral in der Waiblinger Altstadt gelegen."},
+  {cat:"wc", icon:"🚻", name:"WC Backnang", addr:"Backnang", lat:48.94638, lng:9.43343, rating:5.0, hours:"siehe vor Ort", note:"Laut Bewertung immer sauber, mit Wickeltisch für Familien."},
+  {cat:"wc", icon:"🚻", name:"Öffentliche Toilette Marktplatz Heilbronn", addr:"Marktplatz, Heilbronn", lat:49.14214, lng:9.21847, rating:4.4, hours:"siehe vor Ort", note:"Sehr gepflegt, mit kostenlosen Hygieneartikeln, direkt am Marktplatz."}
+];
+
+const catColor = {kuchen:"kuchen", eis:"eis", wasser:"wasser"};
+
+const map = L.map('map', {zoomControl:false}).setView([48.90, 9.28], 10);
+L.control.zoom({position:'bottomleft'}).addTo(map);
+const standardLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap-Mitwirkende'
+});
+const radLayer = L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
+  maxZoom: 20,
+  attribution: '&copy; OpenStreetMap-Mitwirkende, Style: CyclOSM'
+});
+radLayer.addTo(map);
+L.control.layers({'Radwege': radLayer, 'Standard': standardLayer}, null, {position:'topright'}).addTo(map);
+
+const layers = {kuchen:L.layerGroup().addTo(map), eis:L.layerGroup().addTo(map), wasser:L.layerGroup().addTo(map), werkstatt:L.layerGroup().addTo(map), wc:L.layerGroup().addTo(map)};
+
+// Grobe Öffnungszeiten-Regeln für den "Jetzt geöffnet"-Filter. Tage nach JS-Konvention: 0=So,1=Mo,...6=Sa.
+// Fehlt ein Ort hier, gilt er als "unklar" und wird beim Filtern nicht ausgeblendet.
+const alwaysOpenNames = new Set([
+  "Fräulein Schmid Hofladen",
+  "Trinkwasserbrunnen Cannstatt-Mitte","Trinkwasserbrunnen Schillerplatz","Trinkbrunnen Pariser Platz",
+  "Marktplatz Trinkbrunnen","Trinkbrunnen Rathausplatz","Trinkbrunnen Marktplatz","Trinkbrunnen Bärenwiese",
+  "Trinkbrunnen Uferwiesen","Trinkbrunnen Arsenalplatz",
+  "Bike Repair Self Service Station","RadSERVICE-Punkt Reuteallee","RadSERVICE-Punkt Groenerstraße"
+]);
+const openRules = {
+  "alf cycling Café & Bar": [{d:[4,5,6,0], s:'10:00', e:'18:00'}],
+  "Flora & Fauna": [{d:[0,1,2,3,4,5,6], s:'11:00', e:'23:00'}],
+  "s'Cafele": [{d:[5,6,0], s:'14:00', e:'18:00'}],
+  "Lille Bønne": [{d:[2,3,4,5,6], s:'09:00', e:'18:00'}],
+  "Café Mohrenköpfle": [{d:[3,4,5,6], s:'07:00', e:'17:30'}, {d:[0], s:'09:00', e:'17:00'}],
+  "Gelateria Flora": [{d:[0,1,2,3,4,5,6], s:'12:00', e:'19:00'}],
+  "GelatOne": [{d:[2,3,4,5,6,0], s:'10:00', e:'21:00'}],
+  "Bicycle Service Station Cannstatt": [{d:[1,2,3,4,5], s:'09:00', e:'13:00'}, {d:[1,2,3,4,5], s:'14:00', e:'18:00'}]
+};
+function isOpenNow(name){
+  if(alwaysOpenNames.has(name)) return true;
+  const rules = openRules[name];
+  if(!rules) return null;
+  const now = new Date();
+  const day = now.getDay();
+  const mins = now.getHours()*60 + now.getMinutes();
+  return rules.some(r=>{
+    if(!r.d.includes(day)) return false;
+    const [sh,sm] = r.s.split(':').map(Number);
+    const [eh,em] = r.e.split(':').map(Number);
+    return mins >= sh*60+sm && mins <= eh*60+em;
+  });
+}
+
+function makeIcon(cat, icon){
+  return L.divIcon({
+    className:'',
+    html:`<div class="pin ${cat}"><span>${icon}</span></div>`,
+    iconSize:[34,34],
+    iconAnchor:[17,32],
+    popupAnchor:[0,-30]
+  });
+}
+
+const markerRefs = [];
+function createMarker(s){
+  const marker = L.marker([s.lat, s.lng], {icon: makeIcon(s.cat, s.icon || '📍')});
+  markerRefs.push({spot:s, marker});
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}`;
+  const catLabel = s.cat === 'kuchen' ? 'Kaffee & Kuchen' : s.cat === 'eis' ? 'Eis' : s.cat === 'werkstatt' ? 'Werkstatt & Service' : s.cat === 'wc' ? 'WC' : 'Wasser';
+  marker.bindPopup(`
+    <div class="popup ${s.cat}">
+      <span class="cat-tag">${catLabel}</span>${s.shade ? '<span class="cat-tag" style="background:#E5EEDD;color:#4B6B2E;margin-left:4px">🌳 Schattig</span>' : ''}${s.custom ? '<span class="cat-tag" style="background:#F1DFCF;color:var(--kuchen);margin-left:4px">Eigener Ort</span>' : ''}
+      <h3>${s.name}</h3>
+      <p class="addr">${s.addr}</p>
+      <div class="meta"><span class="rating">${s.rating ? '★ ' + s.rating.toFixed(1) : 'keine Bewertung'}</span><span>${s.hours || ''}</span></div>
+      <p class="note">${s.note || ''}</p>
+      <a class="route" href="${mapsUrl}" target="_blank" rel="noopener">Route planen</a>
+      <div class="rate-row">
+        <span class="rate-label">Deine Bewertung</span>
+        <div class="stars" data-name="${s.name.replace(/"/g,'&quot;')}">
+          <span data-value="1">★</span><span data-value="2">★</span><span data-value="3">★</span><span data-value="4">★</span><span data-value="5">★</span>
+        </div>
+      </div>
+      <textarea class="note-field" rows="2" placeholder="Deine Notiz (nur für dich)..." data-note="${s.name.replace(/"/g,'&quot;')}"></textarea>
+    </div>
+  `);
+  marker.addTo(layers[s.cat]);
+  return marker;
+}
+spots.forEach(createMarker);
+
+function loadCustomSpots(){
+  try{ return JSON.parse(localStorage.getItem('sattelpause_custom_spots') || '[]'); }
+  catch(e){ return []; }
+}
+function saveCustomSpots(list){
+  localStorage.setItem('sattelpause_custom_spots', JSON.stringify(list));
+}
+const catIcons = {kuchen:'🍰', eis:'🍦', wasser:'💧', werkstatt:'🔧'};
+loadCustomSpots().forEach(s=>{
+  spots.push(s);
+  createMarker(s);
+});
+
+function getRatings(){
+  try{ return JSON.parse(localStorage.getItem('sattelpause_ratings') || '{}'); }
+  catch(e){ return {}; }
+}
+function setRating(name, value){
+  const ratings = getRatings();
+  ratings[name] = value;
+  localStorage.setItem('sattelpause_ratings', JSON.stringify(ratings));
+}
+function paintStars(container, value){
+  container.querySelectorAll('span').forEach(st=>{
+    st.classList.toggle('filled', Number(st.dataset.value) <= value);
+  });
+}
+function getNotes(){
+  try{ return JSON.parse(localStorage.getItem('sattelpause_notes') || '{}'); }
+  catch(e){ return {}; }
+}
+function setNote(name, text){
+  const notes = getNotes();
+  notes[name] = text;
+  localStorage.setItem('sattelpause_notes', JSON.stringify(notes));
+}
+map.on('popupopen', e=>{
+  const node = e.popup.getElement();
+  const starsBox = node.querySelector('.stars');
+  if(starsBox){
+    const name = starsBox.dataset.name;
+    const ratings = getRatings();
+    paintStars(starsBox, ratings[name] || 0);
+    starsBox.querySelectorAll('span').forEach(st=>{
+      st.addEventListener('click', ()=>{
+        const value = Number(st.dataset.value);
+        setRating(name, value);
+        paintStars(starsBox, value);
+      });
+    });
+  }
+  const noteField = node.querySelector('.note-field');
+  if(noteField){
+    const name = noteField.dataset.note;
+    const notes = getNotes();
+    noteField.value = notes[name] || '';
+    noteField.addEventListener('change', ()=> setNote(name, noteField.value));
+  }
+});
+
+let currentCat = 'alle';
+let openOnly = false;
+let shadeOnly = false;
+
+function refreshVisibility(){
+  markerRefs.forEach(({spot, marker})=>{
+    const catMatch = currentCat === 'alle' || spot.cat === currentCat;
+    const openMatch = !openOnly || isOpenNow(spot.name) !== false;
+    const shadeMatch = !shadeOnly || spot.shade === true;
+    const shouldShow = catMatch && openMatch && shadeMatch;
+    const layer = layers[spot.cat];
+    if(shouldShow){ if(!layer.hasLayer(marker)) layer.addLayer(marker); }
+    else { if(layer.hasLayer(marker)) layer.removeLayer(marker); }
+  });
+}
+
+const chips = document.querySelectorAll('.chip');
+chips.forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    currentCat = chip.dataset.cat;
+    chips.forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    refreshVisibility();
+  });
+});
+
+document.getElementById('openNowToggle').addEventListener('change', (e)=>{
+  openOnly = e.target.checked;
+  refreshVisibility();
+});
+document.getElementById('shadeToggle').addEventListener('change', (e)=>{
+  shadeOnly = e.target.checked;
+  refreshVisibility();
+});
+
+function haversineKm(lat1, lng1, lat2, lng2){
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLng = (lng2-lng1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  document.getElementById('addOverlay').classList.add('show');
+});
+document.getElementById('addCancel').addEventListener('click', ()=>{
+  document.getElementById('addOverlay').classList.remove('show');
+});
+document.getElementById('addSave').addEventListener('click', async ()=>{
+  const name = document.getElementById('addName').value.trim();
+  const cat = document.getElementById('addCat').value;
+  const address = document.getElementById('addAddress').value.trim();
+  const note = document.getElementById('addNote').value.trim();
+  const status = document.getElementById('addStatus');
+  if(!name || !address){
+    status.textContent = 'Bitte Name und Adresse eingeben.';
+    return;
+  }
+  status.textContent = 'Adresse wird gesucht …';
+  try{
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`);
+    const results = await res.json();
+    if(!results.length){
+      status.textContent = 'Adresse nicht gefunden. Bitte genauer angeben.';
+      return;
+    }
+    const newSpot = {
+      cat, icon: catIcons[cat], name, addr: address,
+      lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon),
+      rating: null, hours: '', note, custom: true
+    };
+    spots.push(newSpot);
+    createMarker(newSpot);
+    const custom = loadCustomSpots();
+    custom.push(newSpot);
+    saveCustomSpots(custom);
+    refreshVisibility();
+    map.setView([newSpot.lat, newSpot.lng], 14);
+    document.getElementById('addName').value = '';
+    document.getElementById('addAddress').value = '';
+    document.getElementById('addNote').value = '';
+    document.getElementById('addOverlay').classList.remove('show');
+  } catch(e){
+    status.textContent = 'Fehler bei der Suche. Bitte später erneut versuchen.';
+  }
+});
+
+document.getElementById('tourBtn').addEventListener('click', ()=>{
+  if(!navigator.geolocation){ return; }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const {latitude, longitude} = pos.coords;
+    const wantedCats = ['kuchen','eis','wasser'];
+    const stops = [];
+    let fromLat = latitude, fromLng = longitude;
+    wantedCats.forEach(cat=>{
+      const candidates = spots.filter(s=>s.cat===cat)
+        .map(s=>({s, dist: haversineKm(fromLat, fromLng, s.lat, s.lng)}))
+        .sort((a,b)=>a.dist-b.dist);
+      if(candidates.length){
+        stops.push(candidates[0]);
+        fromLat = candidates[0].s.lat;
+        fromLng = candidates[0].s.lng;
+      }
+    });
+    const list = document.getElementById('tourList');
+    list.innerHTML = '';
+    let total = 0;
+    stops.forEach(({s,dist})=>{
+      total += dist;
+      const item = document.createElement('div');
+      item.className = 'np-item';
+      item.innerHTML = `<span>${s.icon} ${s.name}</span><span class="np-dist">+${dist.toFixed(1)} km</span>`;
+      list.appendChild(item);
+    });
+    const waypoints = stops.map(({s})=>`${s.lat},${s.lng}`).join('|');
+    const last = stops[stops.length-1].s;
+    const midStops = stops.slice(0,-1).map(({s})=>`${s.lat},${s.lng}`).join('|');
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${last.lat},${last.lng}` + (midStops ? `&waypoints=${midStops}` : '') + '&travelmode=bicycling';
+    const linkRow = document.createElement('a');
+    linkRow.className = 'route';
+    linkRow.href = url;
+    linkRow.target = '_blank';
+    linkRow.rel = 'noopener';
+    linkRow.textContent = `Route mit allen Stopps öffnen (≈${total.toFixed(1)} km)`;
+    list.appendChild(linkRow);
+    document.getElementById('nearestPanel').classList.remove('show');
+    document.getElementById('tourPanel').classList.add('show');
+  }, ()=>{ alert('Standort konnte nicht ermittelt werden.'); });
+});
+
+document.getElementById('locateBtn').addEventListener('click', ()=>{
+  if(!navigator.geolocation){ return; }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const {latitude, longitude} = pos.coords;
+    map.setView([latitude, longitude], 13);
+    L.circleMarker([latitude, longitude], {radius:8, color:'#fff', weight:3, fillColor:'#1F3A2E', fillOpacity:1}).addTo(map);
+
+    const withDist = spots.map(s=>({s, dist: haversineKm(latitude, longitude, s.lat, s.lng)}));
+    withDist.sort((a,b)=>a.dist - b.dist);
+    const top = withDist.slice(0, 5);
+    const list = document.getElementById('nearestList');
+    list.innerHTML = '';
+    top.forEach(({s,dist})=>{
+      const item = document.createElement('div');
+      item.className = 'np-item';
+      item.innerHTML = `<span>${s.icon} ${s.name}</span><span class="np-dist">${dist.toFixed(1)} km</span>`;
+      item.addEventListener('click', ()=>{
+        map.setView([s.lat, s.lng], 15);
+        const ref = markerRefs.find(m => m.spot === s);
+        if(ref) ref.marker.openPopup();
+      });
+      list.appendChild(item);
+    });
+    document.getElementById('tourPanel').classList.remove('show');
+    document.getElementById('nearestPanel').classList.add('show');
+  }, ()=>{ alert('Standort konnte nicht ermittelt werden.'); });
+});
+</script>
+</body>
+</html>
