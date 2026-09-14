@@ -1,0 +1,19 @@
+{
+  "name": "Sattelpause",
+  "short_name": "Sattelpause",
+  "description": "Kaffee, Eis, Wasser und Werkstätten für Radfahrer rund um Stuttgart, Ludwigsburg, Rems-Murr, Heilbronn, Enzkreis und Schwäbisch Hall",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EDEAE1",
+  "theme_color": "#16281D",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
