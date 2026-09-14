@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#16281D">
+<title>Sattelpause – Stopps für Radfahrer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EDEAE1;
+    --paper-deep:#E2DDCE;
+    --ink:#16281D;
+    --ink-soft:#57685C;
+    --line:#D3CCBA;
+    --route:#D98C1F;
+    --card:#FFFFFF;
+    --kuchen:#B5541F;
+    --kuchen-soft:#F1DFCF;
+    --eis:#C14B72;
+    --eis-soft:#F6DEE6;
+    --wasser:#2E7D9E;
+    --wasser-soft:#DCE9EC;
+    --werkstatt:#6B5CA5;
+    --werkstatt-soft:#E4E1EA;
+    --wc:#3F8067;
+    --wc-soft:#DCEAE5;
+    --aussicht:#A67C1E;
+    --aussicht-soft:#EDE4CF;
+    --baeckerei:#C99A2E;
+    --baeckerei-soft:#F2E4CC;
+    --ebike:#2D7A7A;
+    --ebike-soft:#DCE9E9;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.5;
+  }
+  .wrap{max-width:480px;margin:0 auto;padding:0 20px 60px;}
+
+  header{padding:28px 0 8px;}
+  .brand{display:flex;align-items:center;gap:9px;margin-bottom:18px;}
+  h1.word{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:21px;
+    margin:0;
+    color:var(--ink);
+  }
+
+  .hero h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:30px;
+    font-weight:700;
+    line-height:1.15;
+    margin:6px 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .hero p{
+    font-size:15.5px;
+    color:var(--ink-soft);
+    margin:0 0 26px;
+  }
+  .hero p b{color:var(--ink);}
+
+  .cta{
+    display:block;
+    text-align:center;
+    background:var(--ink);
+    color:#fff;
+    text-decoration:none;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:16px;
+    padding:15px 0;
+    border-radius:14px;
+    box-shadow:0 4px 14px rgba(22,40,29,0.25);
+  }
+  .cta-note{
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin:9px 0 34px;
+  }
+
+  .stat-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:36px;
+  }
+  .stat{
+    flex:1;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 10px;
+    text-align:center;
+  }
+  .stat .num{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:22px;
+    font-weight:700;
+    color:var(--ink);
+    display:block;
+  }
+  .stat .label{font-size:11.5px;color:var(--ink-soft);}
+
+  section{margin-bottom:34px;}
+  section h3{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:18px;
+    font-weight:600;
+    margin:0 0 14px;
+  }
+
+  .cat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .cat-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:13px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .cat-icon{
+    width:32px;height:32px;
+    border-radius:9px;
+    display:flex;align-items:center;justify-content:center;
+    flex:none;
+  }
+  .cat-card .cat-name{font-size:13.5px;font-weight:600;}
+  .cat-card .cat-desc{font-size:12px;color:var(--ink-soft);line-height:1.35;}
+
+  .feature-list{display:flex;flex-direction:column;gap:16px;}
+  .feature{display:flex;gap:13px;align-items:flex-start;}
+  .feature-icon{
+    width:38px;height:38px;flex:none;
+    border-radius:11px;
+    background:var(--paper-deep);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .feature-text h4{font-size:14.5px;font-weight:600;margin:0 0 3px;}
+  .feature-text p{font-size:12.5px;color:var(--ink-soft);margin:0;line-height:1.4;}
+
+  .quote{
+    background:var(--card);
+    border-left:3px solid var(--route);
+    border-radius:0 12px 12px 0;
+    padding:16px 18px;
+    font-size:14px;
+    color:var(--ink);
+    font-style:italic;
+  }
+  .quote .who{
+    display:block;
+    margin-top:8px;
+    font-size:12px;
+    font-style:normal;
+    color:var(--ink-soft);
+  }
+
+  footer{
+    text-align:center;
+    padding-top:10px;
+    border-top:1px solid var(--line);
+  }
+  footer p{font-size:12px;color:var(--ink-soft);margin:0 0 16px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 26 26" fill="none">
+        <circle cx="7" cy="18" r="4.5" stroke="#16281D" stroke-width="2"/>
+        <circle cx="19" cy="18" r="4.5" stroke="#16281D" stroke-width="2"/>
+        <path d="M7 18L11 8H15M11 8L19 18M11 8L14.5 13" stroke="#16281D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="15" cy="8" r="1.6" fill="#D98C1F"/>
+      </svg>
+      <h1 class="word">Sattelpause</h1>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h2>Nie mehr an der guten Eisdiele vorbeigefahren.</h2>
+    <p>Eine kuratierte Karte mit <b>Café-Stopps, Eisdielen, Trinkbrunnen und Fahrrad-Service</b> entlang eurer Touren um Stuttgart, Ludwigsburg, Rems-Murr und Heilbronn – von Radlern für Radler zusammengestellt, nicht von einem Algorithmus.</p>
+  </div>
+
+  <a class="cta" href="index.html">Karte öffnen →</a>
+  <p class="cta-note">Läuft direkt im Browser, keine Installation nötig</p>
+
+  <div class="stat-row">
+    <div class="stat"><span class="num">100+</span><span class="label">Spots</span></div>
+    <div class="stat"><span class="num">8</span><span class="label">Kategorien</span></div>
+    <div class="stat"><span class="num">4</span><span class="label">Landkreise</span></div>
+  </div>
+
+  <section>
+    <h3>Was ihr findet</h3>
+    <div class="cat-grid">
+      <div class="cat-card">
+        <div class="cat-icon" style="background:var(--kuchen)">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h13v4a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-4Z"/><path d="M17 11h1.8a2.2 2.2 0 0 1 0 4.4H17"/></svg>
+        </div>
+        <div class="cat-name">Kaffee &amp; Kuchen</div>
+        <div class="cat-desc">Radlerfreundliche Cafés und Biergärten, viele direkt am Wasser</div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-icon" style="background:var(--eis)">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 10.5a4.5 4.5 0 0 1 9 0v.5H7.5v-.5Z"/><path d="M8.3 12.5 12 21l3.7-8.5"/></svg>
+        </div>
+        <div class="cat-name">Eis</div>
+        <div class="cat-desc">Von der Eisdiele bis zum 24h-Eisautomaten am Hof</div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-icon" style="background:var(--wasser)">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6.5 7 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10 12 3 12 3Z"/></svg>
+        </div>
+        <div class="cat-name">Trinkbrunnen</div>
+        <div class="cat-desc">Kostenlos Flasche auffüllen, quer durch die Region</div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-icon" style="background:var(--werkstatt)">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6a3.7 3.7 0 0 0-5 5L5 16l3 3 5-5a3.7 3.7 0 0 0 5-5l-2.3 2.3-2-2L15 6Z"/></svg>
+        </div>
+        <div class="cat-name">Werkstatt &amp; Service</div>
+        <div class="cat-desc">Reparaturstationen und Läden für den Platten unterwegs</div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-icon" style="background:var(--aussicht)">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18 9 8l4 6.5 2-3 6 6.5Z"/></svg>
+        </div>
+        <div class="cat-name">Aussichtspunkte</div>
+        <div class="cat-desc">Von der Neckarschleife bis zum Remstal-Panorama</div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-icon" style="background:var(--baeckerei)">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 14c0-4.2 3.6-9 7.5-9s7.5 4.8 7.5 9-3.6 4.5-7.5 4.5-7.5-.3-7.5-4.5Z"/><path d="M9.5 9.5 12 17l2.5-7.5"/></svg>
+        </div>
+        <div class="cat-name">Bäckereien</div>
+        <div class="cat-desc">Frische Brezeln für die Trinkflaschenhalterung</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3>Mehr als nur Pins auf der Karte</h3>
+    <div class="feature-list">
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#16281D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9l-2 6-6 2 2-6 6-2Z"/></svg>
+        </div>
+        <div class="feature-text">
+          <h4>Tourvorschlag</h4>
+          <p>Ein Klick schlägt Café, Eis und Wasser auf dem Weg vor und öffnet die Route direkt in Google Maps.</p>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#16281D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="5.5"/></svg>
+        </div>
+        <div class="feature-text">
+          <h4>Nächste Stopps</h4>
+          <p>Standort freigeben und sofort sehen, was in der Nähe ist – samt Entfernung in km.</p>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#16281D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.3 6.2 20l1.1-6.4L2.5 9l6.5-1L12 2l3 6 6.5 1-4.8 4.6 1.1 6.4Z"/></svg>
+        </div>
+        <div class="feature-text">
+          <h4>Eigene Bewertungen &amp; Notizen</h4>
+          <p>War da, war lecker? Sterne und eigene Notizen bleiben auf dem Gerät gespeichert.</p>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#16281D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="feature-text">
+          <h4>Eigene Orte ergänzen</h4>
+          <p>Kennt ihr einen Spot, der fehlt? Direkt in der Karte per Adresse hinzufügen.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="quote">
+      "Nur ein einfacher Knopfdruck – und schon fließt frisches Wasser aus dem Trinkbrunnen. Bis in den Herbst kann sich jeder kostenlos erfrischen."
+      <span class="who">— Bewertung zu einem der über 15 Trinkbrunnen in der App</span>
+    </div>
+  </section>
+
+  <a class="cta" href="index.html">Zur Karte →</a>
+
+  <footer style="margin-top:34px;">
+    <p>Sattelpause wird laufend um neue Spots und Funktionen erweitert.</p>
+  </footer>
+
+</div>
+</body>
+</html>
